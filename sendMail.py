@@ -1,24 +1,90 @@
 import smtplib
 from email.mime.text import MIMEText
 
-title = '테스트'
-text = '테스트'
+# accountData | Dictionary => {'email': 'yourEmail@example.com', 'protocol': 'TLS', 'smtp': 'smtp.example.com', 'port': '1234', 'pwd': 'example'}
+# receiveEmail | str => receiveEmail@example.com
+# title | str => mail title
+# text | str => html
+# sendMail() | return bool
+def sendMail(accountData, receiveEmail, title, text):
 
-send_email = 'withq.network@gmail.com'
-pwd = 'rtlgoixgbvrkojyu' # APP 비밀번호 발급 필수
-receive_email = 'withq_network@naver.com'
+    if isinstance(accountData, dict) == False:
+        return False
 
-smtp = smtplib.SMTP('smtp.gmail.com', 587) # 계정 IMAP 활성화 필수
-smtp.ehlo()
-smtp.starttls()
-smtp.login(send_email, pwd)
+    if ('email' not in accountData == False
+    or 'protocol' not in accountData == False
+    or 'smtp' not in accountData == False
+    or 'port' not in accountData == False
+    or 'pwd' not in accountData == False):
+        return False
+    
+    send_email = accountData['email']
+    protocol = accountData['protocol']
+    smtp = accountData['smtp']
+    port = accountData['port']
+    pwd = accountData['pwd']
 
-mail = MIMEText(text)
+    if protocol == 'TLS':
 
-mail['Subject'] = title
-mail['From'] = send_email
-mail['To']= receive_email
+        try:
 
-smtp.sendmail(send_email, receive_email, mail.as_string())
+            smtp = smtplib.SMTP(smtp, port)
+            smtp.starttls()
+            smtp.login(send_email, pwd)
 
-smtp.quit()
+        except smtplib.SMTPException as e:
+
+            print(e)
+
+            return False
+        
+        else:
+
+            mail = MIMEText(text)
+            mail['Subject'] = title
+            mail['From'] = send_email
+            mail['To']= receiveEmail
+            smtp.sendmail(send_email, receiveEmail, mail.as_string())
+            smtp.quit()
+
+            return True
+
+    elif protocol == 'SSL':
+
+        try:
+
+            smtp = smtplib.SMTP_SSL(smtp, port)
+            smtp.login(send_email, pwd)
+
+        except smtplib.SMTPException as e:
+
+            print(e)
+
+            return False
+
+        else:
+
+            mail = MIMEText(text)
+            mail['Subject'] = title
+            mail['From'] = send_email
+            mail['To']= receiveEmail
+            smtp.sendmail(send_email, receiveEmail, mail.as_string())
+            smtp.quit()
+
+            return True
+    
+    else:
+
+        return False
+
+dict_ = {
+    'email': 'withq.network@gmail.com',
+    'protocol': 'TLS',
+    'smtp': 'smtp.gmail.com',
+    'port': '587',
+    'pwd': 'rtlgoixgbvrkojyu'
+    }
+
+bool_ = sendMail(dict_, 'withq_network@naver.com', '테스트', '안녕하세요~')
+
+print(bool_)
